@@ -447,7 +447,10 @@
 
         if (isMobileDevice()) {
             // Na mobilních zařízeních okamžitě zaměř skrytý input pro zobrazení klávesnice
-            mobileInput.focus();
+            setTimeout(() => {
+                mobileInput.focus();
+                mobileInput.click();
+            }, 100);
             
             // Zachytávání vstupu ze skryté klávesnice
             mobileInput.addEventListener('input', (event) => {
