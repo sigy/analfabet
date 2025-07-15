@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analfabet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Nunito:wght@400;700&family=Comic+Sans+MS:wght@400;700&family=Comenia+Script&family=OpenDyslexic:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fcfcfd;
+            font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+        }
+
+        .finger-icon {
+            width: 300px;
+            height: 300px;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+            border-radius: 12px;
+        }
+
+        .key-display {
+            font-size: 300px;
+            font-weight: bold;
+            color: #2c3e50;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            font-family: 'Open Sans', Arial, sans-serif;
+        }
+
+        .key-display.non-letter {
+            color: #95a5a6;
+        }
+
+        .key-display.show {
+            opacity: 1;
+        }
+
+        .finger-icon.hide {
+            opacity: 0;
+        }
+
+        .controls-container {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .sound-toggle, .settings-toggle {
+            background: #ffffff;
+            border: 1px solid #d0d5dd;
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: 'Material Symbols Outlined';
+            font-size: 20px;
+            color: #344054;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+        }
+
+        .sound-toggle:hover, .settings-toggle:hover {
+            background: #f9fafb;
+            border-color: #d0d5dd;
+            color: #1d2939;
+        }
+
+        .sound-toggle:active, .settings-toggle:active {
+            background: #f2f4f7;
+            border-color: #d0d5dd;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(16, 24, 40, 0.7);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-dialog {
+            background: #ffffff;
+            border: 1px solid #eaecf0;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            max-height: calc(100vh - 32px);
+            overflow: hidden;
+            box-shadow: 
+                0 20px 25px -5px rgba(16, 24, 40, 0.1),
+                0 10px 10px -5px rgba(16, 24, 40, 0.04);
+            animation: modalEnter 200ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalEnter {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 24px 24px 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #eaecf0;
+        }
+
+        .modal-title {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 28px;
+            color: #101828;
+            margin: 0;
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: #667085;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Material Symbols Outlined';
+            font-size: 20px;
+            transition: all 0.15s ease;
+        }
+
+        .modal-close:hover {
+            background: #f2f4f7;
+            color: #344054;
+        }
+
+        .modal-close:active {
+            background: #eaecf0;
+        }
+
+        .modal-body {
+            padding: 20px 24px 24px 24px;
+            overflow-y: auto;
+            max-height: calc(100vh - 180px);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            color: #344054;
+            margin-bottom: 6px;
+        }
+
+        .form-select {
+            width: 100%;
+            height: 44px;
+            padding: 10px 14px;
+            border: 1px solid #d0d5dd;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #101828;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 16px;
+            line-height: 24px;
+            transition: all 0.15s ease;
+            box-sizing: border-box;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+        }
+
+        .form-select:hover {
+            border-color: #d0d5dd;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #ea580c;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 0 0 4px rgba(234, 88, 12, 0.1);
+        }
+
+        .slider-field {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-wrapper {
+            flex: 1;
+            position: relative;
+            height: 24px;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #eaecf0;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .form-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ea580c;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 0 0 4px rgba(234, 88, 12, 0.1);
+            transition: all 0.15s ease;
+        }
+
+        .form-slider::-webkit-slider-thumb:hover {
+            background: #dc2626;
+        }
+
+        .form-slider::-webkit-slider-thumb:active {
+            background: #b91c1c;
+        }
+
+        .form-slider::-moz-range-track {
+            width: 100%;
+            height: 6px;
+            background: #eaecf0;
+            border-radius: 3px;
+            border: none;
+        }
+
+        .form-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ea580c;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 0 0 4px rgba(234, 88, 12, 0.1);
+            transition: all 0.15s ease;
+        }
+
+        .slider-value {
+            min-width: 32px;
+            text-align: center;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            color: #667085;
+        }
+
+        .modal-actions {
+            padding: 20px 24px 24px 24px;
+            display: flex;
+            justify-content: flex-end;
+            border-top: 1px solid #eaecf0;
+        }
+
+        .btn-primary {
+            background: #ea580c;
+            color: #ffffff;
+            border: 1px solid #ea580c;
+            border-radius: 8px;
+            padding: 10px 16px;
+            height: 40px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+        }
+
+        .btn-primary:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+
+        .btn-primary:active {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls-container">
+        <button class="sound-toggle" id="soundToggle">volume_up</button>
+        <button class="settings-toggle" id="settingsToggle">settings</button>
+    </div>
+
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h1 class="modal-title">Nastavení</h1>
+                <button class="modal-close" id="closeModal">close</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="voiceSelect">Hlas</label>
+                    <select class="form-select" id="voiceSelect"></select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="rateRange">Rychlost</label>
+                    <div class="slider-field">
+                        <div class="slider-wrapper">
+                            <input class="form-slider" type="range" id="rateRange" min="0.1" max="2" step="0.1" value="0.6">
+                        </div>
+                        <span class="slider-value" id="rateValue">0.6</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="pitchRange">Výška</label>
+                    <div class="slider-field">
+                        <div class="slider-wrapper">
+                            <input class="form-slider" type="range" id="pitchRange" min="0" max="2" step="0.1" value="1">
+                        </div>
+                        <span class="slider-value" id="pitchValue">1</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="volumeRange">Hlasitost</label>
+                    <div class="slider-field">
+                        <div class="slider-wrapper">
+                            <input class="form-slider" type="range" id="volumeRange" min="0" max="1" step="0.1" value="1">
+                        </div>
+                        <span class="slider-value" id="volumeValue">1</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="fontSelect">Písmo</label>
+                    <select class="form-select" id="fontSelect">
+                        <option value="'Open Sans', Arial, sans-serif">Open Sans</option>
+                        <option value="'Nunito', Arial, sans-serif">Nunito</option>
+                        <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                        <option value="'Comenia Script', cursive">Comenia Script</option>
+                        <option value="'OpenDyslexic', sans-serif">OpenDyslexic</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn-primary" id="testButton">Test hlasu</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <img class="finger-icon" id="fingerIcon" src="finger.png" alt="Finger">
+        <div class="key-display" id="keyDisplay"></div>
+    </div>
+
+    <script>
+        let timeoutId;
+        let speechEnabled = true;
+        let availableVoices = [];
+        let selectedVoice = null;
+        let speechRate = 0.6;
+        let speechPitch = 1;
+        let speechVolume = 1;
+        const fingerIcon = document.getElementById('fingerIcon');
+        const keyDisplay = document.getElementById('keyDisplay');
+        const soundToggle = document.getElementById('soundToggle');
+        const settingsToggle = document.getElementById('settingsToggle');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeModal = document.getElementById('closeModal');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const rateRange = document.getElementById('rateRange');
+        const pitchRange = document.getElementById('pitchRange');
+        const volumeRange = document.getElementById('volumeRange');
+        const fontSelect = document.getElementById('fontSelect');
+        const testButton = document.getElementById('testButton');
+
+        // Funkce pro načtení dostupných hlasů
+        function loadVoices() {
+            availableVoices = speechSynthesis.getVoices();
+            
+            console.log('=== Dostupné hlasy ===');
+            availableVoices.forEach((voice, index) => {
+                console.log(`${index}: ${voice.name} (${voice.lang}) - ${voice.default ? 'výchozí' : 'není výchozí'}`);
+            });
+            
+            // Vyplň dropdown pouze s českými hlasy
+            voiceSelect.innerHTML = '';
+            const czechVoices = availableVoices.filter(voice => voice.lang.startsWith('cs'));
+            
+            if (czechVoices.length === 0) {
+                const option = document.createElement('option');
+                option.value = -1;
+                option.textContent = 'Žádný český hlas není dostupný';
+                voiceSelect.appendChild(option);
+            } else {
+                czechVoices.forEach((voice) => {
+                    const originalIndex = availableVoices.indexOf(voice);
+                    const option = document.createElement('option');
+                    option.value = originalIndex;
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    voiceSelect.appendChild(option);
+                });
+            }
+            
+            // Najdi první český hlas
+            const czechVoice = availableVoices.find(voice => voice.lang.startsWith('cs'));
+            if (czechVoice) {
+                selectedVoice = czechVoice;
+                const czechIndex = availableVoices.indexOf(czechVoice);
+                voiceSelect.value = czechIndex;
+                console.log(`Vybrán český hlas: ${czechVoice.name}`);
+            } else {
+                console.log('Žádný český hlas nebyl nalezen, bude použit výchozí hlas');
+            }
+        }
+
+        // Načti hlasy při načtení stránky
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+        loadVoices(); // Zavolej hned pro případy, kdy jsou hlasy již načtené
+        
+        // Slovník českých slov pro každé písmeno
+        const wordDictionary = {
+            'A': ['auto', 'ananas', 'autobus', 'abeceda', 'akvárium', 'alobal', 'album', 'astronaut', 'avokádo', 'anděl'],
+            'B': ['bota', 'banán', 'babička', 'balón', 'bagr', 'barva', 'batoh', 'beruška', 'brouk', 'bonbon'],
+            'C': ['cukr', 'citron', 'cibule', 'cirkus', 'cesta', 'cap', 'cop', 'cedule', 'cihla', 'cinkání'],
+            'D': ['domek', 'dort', 'dárky', 'dinosaurus', 'déšť', 'den', 'drak', 'dřevo', 'dveře', 'dudlík'],
+            'E': ['eso', 'eskymák', 'elektrika', 'ema', 'emoce', 'elf', 'euro', 'eduka', 'etiketa', 'energie'],
+            'F': ['fialka', 'film', 'figurka', 'farma', 'fotka', 'flaška', 'fotbal', 'foukání', 'fén', 'fazole'],
+            'G': ['guma', 'guláš', 'glóbus', 'gramofon', 'gól', 'garáž', 'gazela', 'granát', 'gitara', 'gruň'],
+            'H': ['hra', 'husa', 'houska', 'houba', 'hory', 'hračky', 'hříbek', 'hlína', 'hřeben', 'hodiny'],
+            'I': ['igelit', 'indián', 'inkoust', 'iglú', 'ilustrace', 'injekce', 'instrukce', 'inzerát', 'instinkt', 'inovace'],
+            'J': ['jablko', 'jahoda', 'jídlo', 'jelen', 'ježek', 'jaro', 'jezírko', 'jízda', 'jméno', 'jogurt'],
+            'K': ['kočka', 'kráva', 'kamarád', 'koláč', 'kniha', 'kolo', 'krabice', 'klíč', 'květ', 'kostka'],
+            'L': ['lev', 'lampa', 'les', 'lžička', 'list', 'lokomotiva', 'loutka', 'láhev', 'liška', 'lízátko'],
+            'M': ['máma', 'med', 'medvěd', 'míč', 'motýl', 'mrkev', 'mléko', 'myš', 'mašinka', 'most'],
+            'N': ['nos', 'nůžky', 'noc', 'náklad', 'netopýr', 'nápad', 'náklaďák', 'noha', 'nebe', 'náramek'],
+            'O': ['oko', 'ocas', 'orel', 'okno', 'ovečka', 'oheň', 'ovce', 'obrázek', 'ovoce', 'oblak'],
+            'P': ['pes', 'panenka', 'polštář', 'pták', 'papír', 'postel', 'pohádka', 'ponožka', 'palma', 'písmeno'],
+            'R': ['ryba', 'rak', 'ruka', 'rádio', 'robot', 'roh', 'rampouch', 'rýže', 'razítko', 'rohlík'],
+            'S': ['slon', 'stůl', 'sníh', 'střecha', 'sýr', 'sešit', 'slunce', 'skříň', 'sáček', 'sestra'],
+            'T': ['táta', 'tygr', 'tráva', 'talíř', 'traktor', 'tabule', 'tužka', 'telefon', 'taška', 'třešeň'],
+            'U': ['ucho', 'ulice', 'úsměv', 'uhel', 'úl', 'uzenina', 'uzel', 'uhlí', 'ulita', 'učitel'],
+            'V': ['voda', 'vlk', 'věž', 'vařečka', 'včela', 'vlak', 'vana', 'vajíčko', 'vrána', 'vesta'],
+            'Z': ['zebra', 'zámek', 'zmrzlina', 'zajíc', 'zvíře', 'zuby', 'zima', 'zip', 'zahrada', 'zelenina']
+        };
+
+        // Funkce pro hlasovou syntézu
+        function speakText(text) {
+            if (!speechEnabled || !window.speechSynthesis) return;
+            
+            // Zastaví předchozí řeč
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'cs-CZ'; // Český jazyk
+            utterance.rate = speechRate; // Rychlost řeči
+            utterance.pitch = speechPitch; // Výška hlasu
+            utterance.volume = speechVolume; // Hlasitost
+            
+            // Použij vybraný hlas, pokud je dostupný
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function showKey(key) {
+            if (key.match(/[a-zA-Z]/)) {
+                keyDisplay.textContent = key.toUpperCase() + key.toLowerCase();
+                keyDisplay.classList.remove('non-letter');
+            } else if (key.match(/[0-9]/)) {
+                keyDisplay.textContent = key;
+                keyDisplay.classList.remove('non-letter');
+            } else {
+                keyDisplay.textContent = key;
+                keyDisplay.classList.add('non-letter');
+            }
+            keyDisplay.classList.add('show');
+            fingerIcon.classList.add('hide');
+            
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                keyDisplay.classList.remove('show');
+                fingerIcon.classList.remove('hide');
+            }, 1500);
+        }
+
+        // Slovník českých názvů číslic
+        const numberDictionary = {
+            '0': 'nula',
+            '1': 'jedna',
+            '2': 'dva',
+            '3': 'tři',
+            '4': 'čtyři',
+            '5': 'pět',
+            '6': 'šest',
+            '7': 'sedm',
+            '8': 'osm',
+            '9': 'devět'
+        };
+
+        function playSound(key) {
+            if (key.match(/[a-zA-Z]/)) {
+                // Hlasová syntéza pro písmena
+                const upperKey = key.toUpperCase();
+                const lowerKey = key.toLowerCase();
+                
+                // Pro písmena Q, W, Y, X pouze vyslov písmeno
+                if (['Q', 'W', 'Y', 'X'].includes(upperKey)) {
+                    speakText(lowerKey);
+                } else {
+                    // Speciální výslovnost pro S a Z
+                    let letterPronunciation = lowerKey;
+                    if (upperKey === 'S') {
+                        letterPronunciation = 'es';
+                    } else if (upperKey === 'Z') {
+                        letterPronunciation = 'zet';
+                    }
+                    
+                    const words = wordDictionary[upperKey];
+                    if (words && words.length > 0) {
+                        const randomWord = words[Math.floor(Math.random() * words.length)];
+                        speakText(`${letterPronunciation} jako ${randomWord}`);
+                    }
+                }
+            } else if (key.match(/[0-9]/)) {
+                // Hlasová syntéza pro čísla
+                const numberName = numberDictionary[key];
+                if (numberName) {
+                    speakText(numberName);
+                }
+            }
+        }
+
+        let pressedKeys = new Set();
+
+        document.addEventListener('keydown', (event) => {
+            const key = event.key;
+            
+            if (key.length === 1) {
+                showKey(key);
+                
+                // Přehraje zvuk pouze při prvním stisknutí (ne při držení)
+                if (!pressedKeys.has(key)) {
+                    pressedKeys.add(key);
+                    playSound(key);
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            const key = event.key;
+            
+            if (key.length === 1) {
+                pressedKeys.delete(key);
+            }
+        });
+
+        // Event listenery pro ovládání hlasu
+        voiceSelect.addEventListener('change', () => {
+            const selectedIndex = parseInt(voiceSelect.value);
+            if (selectedIndex >= 0) {
+                selectedVoice = availableVoices[selectedIndex];
+            }
+        });
+
+        rateRange.addEventListener('input', () => {
+            speechRate = parseFloat(rateRange.value);
+            document.getElementById('rateValue').textContent = speechRate;
+        });
+
+        pitchRange.addEventListener('input', () => {
+            speechPitch = parseFloat(pitchRange.value);
+            document.getElementById('pitchValue').textContent = speechPitch;
+        });
+
+        volumeRange.addEventListener('input', () => {
+            speechVolume = parseFloat(volumeRange.value);
+            document.getElementById('volumeValue').textContent = speechVolume;
+        });
+
+        fontSelect.addEventListener('change', () => {
+            const selectedFont = fontSelect.value;
+            keyDisplay.style.fontFamily = selectedFont;
+        });
+
+        testButton.addEventListener('click', () => {
+            speakText('A jako Auto. Test hlasu funguje správně.');
+        });
+
+        // Modální okno
+        settingsToggle.addEventListener('click', () => {
+            settingsModal.classList.add('show');
+        });
+
+        closeModal.addEventListener('click', () => {
+            settingsModal.classList.remove('show');
+        });
+
+        // Zavření modálního okna kliknutím mimo něj
+        settingsModal.addEventListener('click', (event) => {
+            if (event.target === settingsModal) {
+                settingsModal.classList.remove('show');
+            }
+        });
+
+        // Funkce pro přepnutí zvuku
+        soundToggle.addEventListener('click', () => {
+            speechEnabled = !speechEnabled;
+            soundToggle.textContent = speechEnabled ? 'volume_up' : 'volume_off';
+            
+            // Zastaví aktuální řeč
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+        });
+    </script>
+</body>
+</html>
