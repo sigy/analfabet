@@ -33,8 +33,30 @@
             width: 300px;
             height: 300px;
             cursor: pointer;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease, width 0.3s ease, height 0.3s ease;
             border-radius: 12px;
+        }
+        
+        @media (max-height: 500px) and (max-width: 768px) {
+            .finger-icon {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .key-display {
+                font-size: 200px !important;
+            }
+        }
+        
+        @media (max-height: 400px) and (max-width: 768px) {
+            .finger-icon {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .key-display {
+                font-size: 150px !important;
+            }
         }
 
         .key-display {
@@ -472,6 +494,27 @@
             // Kliknutí kdekoli obnoví fokus
             document.addEventListener('click', () => {
                 mobileInput.focus();
+            });
+            
+            // Přizpůsobení velikosti při změně velikosti viewportu (klávesnice)
+            window.addEventListener('resize', () => {
+                const vh = window.innerHeight;
+                const vw = window.innerWidth;
+                
+                // Detekce malého viewportu kvůli klávesnici
+                if (vh < 500 && vw < 768) {
+                    fingerIcon.style.width = '200px';
+                    fingerIcon.style.height = '200px';
+                    keyDisplay.style.fontSize = '200px';
+                } else if (vh < 400 && vw < 768) {
+                    fingerIcon.style.width = '150px';
+                    fingerIcon.style.height = '150px';
+                    keyDisplay.style.fontSize = '150px';
+                } else {
+                    fingerIcon.style.width = '300px';
+                    fingerIcon.style.height = '300px';
+                    keyDisplay.style.fontSize = '300px';
+                }
             });
         }
 
